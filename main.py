@@ -1,7 +1,11 @@
+import copy
+
+
 class Transaction:
     def __init__(self):
         self.values = {}
         self.history = []
+        self.history_deleted = []
 
     def begin(self):
         self.history.append(self.values.copy())
@@ -10,11 +14,22 @@ class Transaction:
     def commit(self):
         if not self.history:
             raise Exception("Нет активной транзакции.")
+        if self.history_deleted:
+            self.history_deleted.clear()
+
+        for h_values in self.history:
+            for key, value in h_values.items():
+                if key not in self.values:
+                    self.values[key] = value
+
         self.history.pop()
 
     def rollback(self):
         if not self.history:
             raise Exception("Нет активной транзакции.")
+        if self.history_deleted:
+            self.history = self.history_deleted.copy()
+            self.history_deleted = []
         self.values = self.history.pop()
 
     def set_value(self, key, value):
@@ -57,7 +72,11 @@ class Transaction:
         return found_keys
 
     def unset_value(self, key):
+        self.history_deleted = copy.deepcopy(self.history)
         self.values.pop(key, None)
+        if self.history:
+            for d in self.history:
+                d.pop(key, None)
 
 
 def main():
