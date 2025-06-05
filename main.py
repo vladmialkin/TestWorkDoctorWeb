@@ -22,7 +22,7 @@ class Transaction:
                 if key not in self.values:
                     self.values[key] = value
 
-        self.history.pop()
+        self.history.clear()
 
     def rollback(self):
         if not self.history:
